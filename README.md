@@ -1,8 +1,8 @@
-readme_content = """# 👗 HemlineIQ: Fashion-Economic Sentiment Tracker
+HemlineIQ: Fashion-Economic Sentiment Tracker
 
 **HemlineIQ** is a live web application that modernizes economist George Taylor's 1926 "Hemline Index" theory. It programmatically correlates fashion search trends (specifically the popularity of mini vs. midi/maxi skirts) with hard macroeconomic data (consumer sentiment, unemployment, inflation) to explore whether fashion acts as a leading indicator of public economic sentiment.
 
-The conceptual foundation of this project is rooted in historical economic theories and sparked by modern fashion journalism, specifically exploring the question: [*Does the Midi Skirt Trend Predict a Recession?*](https://www.voguearabia.com/article/does-the-midi-skirt-trend-predict-a-recession)
+The conceptual foundation of this project is rooted in historical economic theories and sparked by modern fashion journalism, specifically exploring the question: [*Do Women Fashion Trends Predict a Recession?*](https://www.voguearabia.com/article/does-the-midi-skirt-trend-predict-a-recession)
 
 ## 🛠️ Tech Stack & Tooling
 - **Backend:** Python, FastAPI
