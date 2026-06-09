@@ -1,20 +1,22 @@
 from groq import Groq
+import google.generativeai as genai
 from dotenv import load_dotenv
-from news import get_news_data  # NEW
+from news import get_news_data
 import os
 
 load_dotenv()
 
-def generate_briefing(hemline_index, mini_score, midi_score, sentiment, unemployment, inflation):
-    client = Groq(api_key=os.getenv('GROQ_API_KEY'))
-
-    news = get_news_data()  # NEW
+def build_prompt(hemline_index, mini_score, midi_score, sentiment, unemployment, inflation, news):
     news_signal = news['sentiment']['dominant_signal']
     news_score = news['sentiment']['sentiment_score']
     news_hits = news['keyword_hits']
-    news_headlines = "\n".join(f"- {h}" for h in news['top_headlines'])
+    news_headlines = (
+        "\n".join(f"- {h}" for h in news['top_headlines'])
+        if news['top_headlines']
+        else "  (news feed unavailable)"
+    )
 
-    prompt = f"""You are a financial analyst who specializes in alternative economic indicators, 
+    return f"""You are a financial analyst who specializes in alternative economic indicators, 
 particularly fashion trends as economic signals (the Hemline Index theory, first proposed by 
 economist George Taylor in 1926).
 
@@ -46,13 +48,42 @@ Write a 3-paragraph Bloomberg-style briefing:
 Be specific with the numbers. Be confident but acknowledge uncertainty. 
 Keep it under 250 words."""
 
+
+def _try_groq(prompt):
+    """Primary LLM: Groq (fast, free)."""
+    client = Groq(api_key=os.getenv('GROQ_API_KEY'))
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=350  # bumped slightly to fit the extra paragraph
+        max_tokens=350
     )
-
     return response.choices[0].message.content
+
+
+def _try_gemini(prompt):
+    """Fallback LLM: Gemini (free, generous limits)."""
+    genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    response = model.generate_content(prompt)
+    return response.text
+
+
+def generate_briefing(hemline_index, mini_score, midi_score, sentiment, unemployment, inflation):
+    news = get_news_data()
+    prompt = build_prompt(hemline_index, mini_score, midi_score, sentiment, unemployment, inflation, news)
+
+    # Try Groq first, fall back to Gemini if anything goes wrong
+    try:
+        print("[insight.py] Using Groq...")
+        return _try_groq(prompt)
+    except Exception as e:
+        print(f"[insight.py] Groq failed ({e}) — falling back to Gemini...")
+
+    try:
+        return _try_gemini(prompt)
+    except Exception as e:
+        raise RuntimeError(f"Both LLMs failed. Last error: {e}")
+
 
 if __name__ == "__main__":
     briefing = generate_briefing(
