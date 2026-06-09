@@ -22,12 +22,25 @@ def get_economic_data():
     print(f"\nUnemployment Rate (latest): {unemployment.iloc[-1]:.1f}%")
     print(f"\nCPI Inflation Index (latest): {inflation.iloc[-1]:.1f}")
 
-    
     return {
         "sentiment": sentiment,
         "unemployment": unemployment,
         "inflation": inflation
     }
+
+
+def get_economic_summary() -> dict:
+    """
+    Wrapper for the FastAPI backend.
+    Returns the latest values as plain floats instead of pandas Series.
+    """
+    data = get_economic_data()
+    return {
+        "consumer_sentiment": round(float(data["sentiment"].iloc[-1]), 1),
+        "unemployment":       round(float(data["unemployment"].iloc[-1]), 1),
+        "inflation":          round(float(data["inflation"].iloc[-1]), 1),
+    }
+
 
 if __name__ == "__main__":
     get_economic_data()
