@@ -29,5 +29,23 @@ def get_hemline_trends():
     
     return df
 
+
+def get_trends_data() -> dict:
+    """
+    Wrapper for the FastAPI backend.
+    Returns the latest values as a plain dict instead of a DataFrame.
+    """
+    df = get_hemline_trends()
+    if df is None:
+        raise RuntimeError("Google Trends returned no data.")
+    return {
+        "hemline_index": int(df['hemline_index'].iloc[-1]),
+        "mini":          int(df['mini skirt'].iloc[-1]),
+        "midi":          int(df['midi skirt'].iloc[-1]),
+        "maxi":          int(df['maxi skirt'].iloc[-1]),
+        "mini_dress":    int(df['mini dress'].iloc[-1]),
+    }
+
+
 if __name__ == "__main__":
     get_hemline_trends()
