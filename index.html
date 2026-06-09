@@ -1,660 +1,355 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HemlineIQ</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --black:   #0A0A0A;
-      --surface: #141414;
-      --card:    #1C1C1C;
-      --border:  #2A2A2A;
-      --parchment: #F5F0E8;
-      --muted:   #7A7570;
-      --gold:    #C8A951;
-      --gold-dim:#8C7435;
-      --red:     #E63946;
-      --green:   #4CAF82;
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>HemlineIQ Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "surface-container-high": "#2a2a2a",
+          "surface-container": "#201f1f",
+          "on-surface-variant": "#e5bdc1",
+          "surface": "#131313",
+          "border-subtle": "#2A2A2A",
+          "secondary": "#fdb2c3",
+          "primary": "#ffb2bc",
+          "on-surface": "#e5e2e1",
+          "surface-1": "#141414",
+          "surface-2": "#1C1C1C",
+        },
+        fontFamily: {
+          "title-sm": ["Playfair Display"],
+          "body-base": ["DM Sans"],
+          "label-caps": ["Space Mono"],
+          "headline-md": ["Playfair Display"],
+          "data-lg": ["Space Mono"],
+          "display-lg": ["Playfair Display"],
+          "data-md": ["Space Mono"],
+        },
+        fontSize: {
+          "title-sm": ["20px", { lineHeight: "28px", fontWeight: "500" }],
+          "body-base": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+          "label-caps": ["10px", { lineHeight: "12px", letterSpacing: "0.1em", fontWeight: "700" }],
+          "headline-md": ["32px", { lineHeight: "40px", fontWeight: "600" }],
+          "data-lg": ["24px", { lineHeight: "32px", letterSpacing: "-0.04em", fontWeight: "700" }],
+          "display-lg": ["64px", { lineHeight: "72px", letterSpacing: "-0.02em", fontWeight: "700" }],
+          "data-md": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+        }
+      }
     }
+  }
+</script>
+<style>
+  .font-mono { font-family: 'Space Mono', monospace; }
+  .font-serif { font-family: 'Playfair Display', serif; }
 
-    body {
-      background: var(--black);
-      color: var(--parchment);
-      font-family: 'DM Mono', monospace;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+  @keyframes pulse-glow {
+    0%   { text-shadow: 0 0 10px rgba(255,45,107,0.2); }
+    50%  { text-shadow: 0 0 20px rgba(255,45,107,0.9), 0 0 40px rgba(255,45,107,0.5); }
+    100% { text-shadow: 0 0 10px rgba(255,45,107,0.2); }
+  }
+  .animate-pulse-glow { animation: pulse-glow 2s ease-out 1; }
 
-    /* ── MASTHEAD ── */
-    .masthead {
-      border-bottom: 1px solid var(--border);
-      padding: 0 2.5rem;
-      display: flex;
-      align-items: stretch;
-      justify-content: space-between;
-      height: 72px;
-    }
+  @keyframes grow-up {
+    from { transform: scaleY(0); opacity: 0; }
+    to   { transform: scaleY(1); opacity: 1; }
+  }
+  .bar-animate { transform-origin: bottom; animation: grow-up 0.8s ease-out forwards; opacity: 0; }
+  .bar-1 { animation-delay: 0.1s; }
+  .bar-2 { animation-delay: 0.25s; }
+  .bar-3 { animation-delay: 0.4s; }
 
-    .masthead-left {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+  .spin-refresh { animation: spin 0.8s linear infinite; }
 
-    .wordmark {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.6rem;
-      font-weight: 900;
-      letter-spacing: 0.04em;
-      color: var(--parchment);
-      line-height: 1;
-    }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .fade-in { animation: fadeIn 0.5s ease-out forwards; }
 
-    .wordmark span {
-      color: var(--gold);
-    }
-
-    .tagline {
-      font-size: 0.6rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    .masthead-center {
-      display: flex;
-      align-items: center;
-      gap: 2rem;
-    }
-
-    .index-display {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0 2rem;
-      border-left: 1px solid var(--border);
-      border-right: 1px solid var(--border);
-      height: 100%;
-      justify-content: center;
-    }
-
-    .index-label {
-      font-size: 0.55rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .index-value {
-      font-family: 'Playfair Display', serif;
-      font-size: 2rem;
-      font-weight: 700;
-      line-height: 1;
-      animation: goldPulse 2s ease-out forwards;
-    }
-
-    @keyframes goldPulse {
-      0%   { color: var(--parchment); text-shadow: none; }
-      40%  { color: var(--gold); text-shadow: 0 0 24px var(--gold), 0 0 48px var(--gold-dim); }
-      100% { color: var(--parchment); text-shadow: none; }
-    }
-
-    .signal-badge {
-      font-size: 0.5rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      padding: 2px 8px;
-      border-radius: 2px;
-      margin-top: 3px;
-      font-weight: 500;
-    }
-    .signal-badge.bullish  { background: rgba(76,175,130,0.15); color: var(--green); border: 1px solid rgba(76,175,130,0.3); }
-    .signal-badge.bearish  { background: rgba(230,57,70,0.15);  color: var(--red);   border: 1px solid rgba(230,57,70,0.3); }
-    .signal-badge.neutral  { background: rgba(200,169,81,0.15); color: var(--gold);  border: 1px solid rgba(200,169,81,0.3); }
-
-    .masthead-right {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-    }
-
-    .stat-pill {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-    }
-
-    .stat-pill .s-label {
-      font-size: 0.5rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .stat-pill .s-value {
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--parchment);
-    }
-
-    .refresh-btn {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.6rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      padding: 6px 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .refresh-btn:hover {
-      border-color: var(--gold);
-      color: var(--gold);
-    }
-
-    /* ── DATE STRIP ── */
-    .date-strip {
-      padding: 6px 2.5rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-      font-size: 0.55rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .date-strip .dot {
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: blink 2s infinite;
-    }
-
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.2; }
-    }
-
-    /* ── MAIN GRID ── */
-    .main-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-      min-height: calc(100vh - 120px);
-    }
-
-    /* ── CHART PANEL ── */
-    .chart-panel {
-      border-right: 1px solid var(--border);
-      padding: 2rem 2.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .panel-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--parchment);
-      line-height: 1.2;
-    }
-
-    .panel-subtitle {
-      font-size: 0.55rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    .legend {
-      display: flex;
-      gap: 1rem;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.55rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .legend-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-    }
-
-    .chart-wrap {
-      flex: 1;
-      min-height: 320px;
-    }
-
-    /* Recharts overrides */
-    .recharts-cartesian-grid-horizontal line,
-    .recharts-cartesian-grid-vertical line {
-      stroke: var(--border) !important;
-    }
-
-    .recharts-text { fill: var(--muted) !important; font-family: 'DM Mono', monospace !important; font-size: 10px !important; }
-    .recharts-tooltip-wrapper { font-family: 'DM Mono', monospace !important; }
-
-    /* ── STATS ROW (below chart) ── */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1px;
-      background: var(--border);
-      border: 1px solid var(--border);
-    }
-
-    .stat-card {
-      background: var(--card);
-      padding: 1rem;
-    }
-
-    .stat-card .sc-label {
-      font-size: 0.5rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
-
-    .stat-card .sc-value {
-      font-size: 1.3rem;
-      font-weight: 500;
-      color: var(--parchment);
-      line-height: 1;
-    }
-
-    .stat-card .sc-sub {
-      font-size: 0.5rem;
-      color: var(--muted);
-      margin-top: 3px;
-    }
-
-    /* ── BRIEFING PANEL ── */
-    .briefing-panel {
-      padding: 2rem 2.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .briefing-text {
-      font-family: 'Playfair Display', serif;
-      font-size: 0.95rem;
-      line-height: 1.85;
-      color: var(--parchment);
-      flex: 1;
-    }
-
-    .briefing-text p {
-      margin-bottom: 1.2em;
-    }
-
-    .briefing-text p:last-child { margin-bottom: 0; }
-
-    .briefing-divider {
-      width: 40px;
-      height: 1px;
-      background: var(--gold);
-      margin: 0.5rem 0;
-    }
-
-    /* news headlines */
-    .headlines-section { margin-top: 0.5rem; }
-
-    .headlines-label {
-      font-size: 0.5rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 0.75rem;
-    }
-
-    .headline-item {
-      display: flex;
-      gap: 0.75rem;
-      align-items: flex-start;
-      padding: 0.6rem 0;
-      border-top: 1px solid var(--border);
-      font-size: 0.65rem;
-      line-height: 1.5;
-      color: var(--muted);
-      transition: color 0.2s;
-    }
-
-    .headline-item:hover { color: var(--parchment); }
-
-    .headline-item::before {
-      content: '—';
-      color: var(--gold);
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-
-    /* loading / error states */
-    .loading-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      gap: 1rem;
-      color: var(--muted);
-    }
-
-    .spinner {
-      width: 24px; height: 24px;
-      border: 1px solid var(--border);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .loading-text {
-      font-size: 0.6rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-    }
-
-    .error-msg {
-      font-size: 0.65rem;
-      color: var(--red);
-      padding: 1rem;
-      border: 1px solid rgba(230,57,70,0.2);
-      background: rgba(230,57,70,0.05);
-    }
-
-    /* ── FOOTER ── */
-    .footer {
-      border-top: 1px solid var(--border);
-      padding: 1rem 2.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.5rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    @media (max-width: 900px) {
-      .main-grid { grid-template-columns: 1fr; }
-      .chart-panel { border-right: none; border-bottom: 1px solid var(--border); }
-      .masthead-center, .masthead-right { display: none; }
-    }
-  </style>
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #0A0A0A; }
+  ::-webkit-scrollbar-thumb { background: #2A2A2A; }
+  ::-webkit-scrollbar-thumb:hover { background: #FF2D6B; }
+</style>
 </head>
-<body>
+<body class="bg-[#0A0A0A] text-on-surface min-h-screen flex flex-col overflow-x-hidden selection:bg-[#FF2D6B] selection:text-black">
 
-<!-- MASTHEAD -->
-<header class="masthead">
-  <div class="masthead-left">
-    <div class="wordmark">Hemline<span>IQ</span></div>
-    <div class="tagline">Fashion as Economic Signal</div>
+<!-- HEADER -->
+<header class="sticky top-0 z-50 flex justify-between items-center w-full px-6 md:px-12 py-4 bg-[#0A0A0A]/90 backdrop-blur-md border-b border-[#2A2A2A]">
+  <div class="flex items-center gap-2">
+    <h1 class="font-headline-md text-headline-md tracking-tighter">Hemline<span class="text-[#FF2D6B]">IQ</span></h1>
   </div>
-  <div class="masthead-center">
-    <div class="index-display">
-      <div class="index-label">Hemline Index</div>
-      <div class="index-value" id="indexValue">—</div>
-      <div class="signal-badge neutral" id="signalBadge">Loading</div>
-    </div>
+  <div class="flex items-center gap-3">
+    <span class="font-display-lg text-display-lg text-[#FF2D6B] animate-pulse-glow" id="indexValue">—</span>
+    <span class="font-label-caps text-label-caps border px-2 py-1 transition-all" id="signalBadge" style="border-color:#F5D0DA;color:#F5D0DA;background:rgba(245,208,218,0.08)">LOADING</span>
   </div>
-  <div class="masthead-right">
-    <div class="stat-pill">
-      <span class="s-label">Sentiment</span>
-      <span class="s-value" id="headerSentiment">—</span>
+  <div class="items-center gap-6 hidden md:flex">
+    <div class="flex gap-4">
+      <div class="flex flex-col border-l border-[#2A2A2A] pl-4">
+        <span class="font-label-caps text-label-caps text-on-surface-variant">SENTIMENT</span>
+        <span class="font-data-md text-data-md" id="headerSentiment">—</span>
+      </div>
+      <div class="flex flex-col border-l border-[#2A2A2A] pl-4">
+        <span class="font-label-caps text-label-caps text-on-surface-variant">UNEMP</span>
+        <span class="font-data-md text-data-md" id="headerUnemployment">—</span>
+      </div>
+      <div class="flex flex-col border-l border-[#2A2A2A] pl-4">
+        <span class="font-label-caps text-label-caps text-on-surface-variant">CPI</span>
+        <span class="font-data-md text-data-md" id="headerInflation">—</span>
+      </div>
     </div>
-    <div class="stat-pill">
-      <span class="s-label">Unemployment</span>
-      <span class="s-value" id="headerUnemployment">—</span>
-    </div>
-    <div class="stat-pill">
-      <span class="s-label">CPI</span>
-      <span class="s-value" id="headerInflation">—</span>
-    </div>
-    <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
+    <button class="flex items-center gap-2 font-label-caps text-label-caps border border-[#E8A0B0] text-secondary px-4 py-2 hover:bg-[#1C1C1C] hover:text-[#FF2D6B] hover:border-[#FF2D6B] transition-colors h-12" id="refreshBtn">
+      <span class="material-symbols-outlined text-[16px]" id="refreshIcon">refresh</span>
+      REFRESH
+    </button>
   </div>
 </header>
 
-<!-- DATE STRIP -->
-<div class="date-strip">
-  <div class="dot"></div>
-  <span>Live Data</span>
-  <span>·</span>
-  <span id="generatedAt">Fetching...</span>
-  <span>·</span>
-  <span>Source: Google Trends · Federal Reserve · NewsAPI</span>
-  <span>·</span>
-  <span>Model: Groq llama-3.3-70b / Gemini 2.0 Flash</span>
+<!-- LIVE STRIP -->
+<div class="w-full bg-[#141414] border-b border-[#2A2A2A] py-1 px-6 md:px-12">
+  <p class="font-label-caps text-label-caps text-on-surface-variant opacity-70">
+    <span class="inline-block w-2 h-2 rounded-full bg-[#FF2D6B] mr-2 animate-pulse"></span>
+    LIVE DATA · SOURCE: GOOGLE TRENDS · FEDERAL RESERVE · NEWSAPI · 
+    <span id="generatedAt">FETCHING...</span>
+  </p>
 </div>
 
 <!-- MAIN GRID -->
-<div class="main-grid">
+<main class="flex-grow grid grid-cols-1 md:grid-cols-2 gap-px bg-[#2A2A2A]">
 
-  <!-- LEFT: CHART -->
-  <div class="chart-panel">
-    <div class="panel-header">
-      <div>
-        <div class="panel-title">Hemline Index vs Consumer Sentiment</div>
-        <div class="panel-subtitle">Google Trends search interest · 5-year window · United States</div>
-      </div>
-      <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#C8A951"></div>Mini Skirt</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#7A7570"></div>Midi Skirt</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#4CAF82"></div>Maxi Skirt</div>
+  <!-- LEFT PANEL -->
+  <section class="bg-[#0A0A0A] p-6 md:p-12 flex flex-col gap-8">
+
+    <!-- Panel title -->
+    <div class="border-b border-[#2A2A2A] pb-4">
+      <h2 class="font-headline-md text-headline-md text-on-surface">Consumer Sentiment Score</h2>
+      <p class="font-data-md text-data-md text-on-surface-variant mt-1">Trend analysis of Hemline Length Indicator · US · 5-year window</p>
+    </div>
+
+    <!-- Bar Chart -->
+    <div class="bg-[#141414] border border-[#2A2A2A] p-6 relative flex flex-col gap-4" id="chartContainer">
+      <div class="font-label-caps text-label-caps text-on-surface-variant">HEMLINE DISTRIBUTION</div>
+      <div class="h-48 flex items-end justify-around gap-4 relative" id="barChart">
+        <!-- bars injected by JS -->
+        <div class="flex flex-col items-center justify-center w-full h-full gap-2 text-on-surface-variant font-label-caps text-label-caps">
+          <span class="inline-block w-5 h-5 border-2 border-[#2A2A2A] border-t-[#FF2D6B] rounded-full spin-refresh"></span>
+          FETCHING DATA...
+        </div>
       </div>
     </div>
 
-    <div class="chart-wrap" id="chartWrap">
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <div class="loading-text">Pulling trend data...</div>
+    <!-- Macro stats -->
+    <div class="grid grid-cols-3 gap-4 border-t border-[#2A2A2A] pt-6">
+      <div class="flex flex-col gap-1">
+        <span class="font-label-caps text-label-caps text-on-surface-variant">CONSUMER SENTIMENT</span>
+        <span class="font-data-lg text-data-lg" id="macroSentiment">—</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="font-label-caps text-label-caps text-on-surface-variant">UNEMPLOYMENT %</span>
+        <span class="font-data-lg text-data-lg" id="macroUnemployment">—</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="font-label-caps text-label-caps text-on-surface-variant">CPI</span>
+        <span class="font-data-lg text-data-lg" id="macroInflation">—</span>
       </div>
     </div>
 
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="sc-label">Mini Skirt</div>
-        <div class="sc-value" id="miniScore">—</div>
-        <div class="sc-sub">Search interest / 100</div>
+    <!-- Sparkline -->
+    <div class="flex flex-col gap-4 border-t border-[#2A2A2A] pt-6">
+      <h3 class="font-label-caps text-label-caps text-on-surface-variant">HEMLINE SIGNAL · RECENT TREND</h3>
+      <div class="h-32 w-full flex items-center bg-[#141414] border border-[#2A2A2A] p-4">
+        <svg class="w-full h-full overflow-visible" viewBox="0 0 200 40" preserveAspectRatio="none" id="sparkline">
+          <polyline fill="none" points="0,25 40,30 80,20 120,10 160,28 200,22" stroke="#FF2D6B" stroke-width="1.5" opacity="0.6"/>
+          <circle cx="0"   cy="25" fill="#FF2D6B" r="2.5"/><circle cx="40"  cy="30" fill="#FF2D6B" r="2.5"/>
+          <circle cx="80"  cy="20" fill="#FF2D6B" r="2.5"/><circle cx="120" cy="10" fill="#FF2D6B" r="2.5"/>
+          <circle cx="160" cy="28" fill="#FF2D6B" r="2.5"/><circle cx="200" cy="22" fill="#FF2D6B" r="2.5"/>
+        </svg>
       </div>
-      <div class="stat-card">
-        <div class="sc-label">Midi Skirt</div>
-        <div class="sc-value" id="midiScore">—</div>
-        <div class="sc-sub">Search interest / 100</div>
-      </div>
-      <div class="stat-card">
-        <div class="sc-label">Maxi Skirt</div>
-        <div class="sc-value" id="maxiScore">—</div>
-        <div class="sc-sub">Search interest / 100</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- RIGHT: BRIEFING -->
-  <div class="briefing-panel">
-    <div class="panel-header">
-      <div>
-        <div class="panel-title">AI Analyst Briefing</div>
-        <div class="panel-subtitle">Bloomberg-style · Updated hourly · Hemline Index theory, G. Taylor 1926</div>
-      </div>
+      <p class="font-data-md text-data-md text-on-surface-variant opacity-60">Placeholder trend — historical endpoint coming in Phase 4</p>
     </div>
 
-    <div class="briefing-divider"></div>
+  </section>
 
-    <div id="briefingContent">
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <div class="loading-text">Generating briefing...</div>
+  <!-- RIGHT PANEL -->
+  <section class="bg-[#0A0A0A] p-6 md:p-12 flex flex-col gap-6 relative">
+
+    <!-- Loading overlay -->
+    <div class="absolute inset-0 bg-[#0A0A0A]/90 backdrop-blur-sm z-40 flex-col items-center justify-center hidden" id="loadingOverlay">
+      <div class="w-10 h-10 border-2 border-[#2A2A2A] border-t-[#FF2D6B] rounded-full spin-refresh mb-4"></div>
+      <p class="font-data-md text-data-md text-[#FF2D6B] animate-pulse">FETCHING DATA...</p>
+    </div>
+
+    <!-- Briefing heading -->
+    <h2 class="font-title-sm text-title-sm uppercase tracking-widest border-b-2 border-[#FF2D6B] pb-2 text-[#FF2D6B]">AI Analyst Briefing</h2>
+    <p class="font-data-md text-data-md text-on-surface-variant -mt-4">Bloomberg-style · Updated hourly · Hemline Index theory, G. Taylor 1926</p>
+
+    <!-- Briefing text -->
+    <div class="flex flex-col gap-5 font-serif text-body-base leading-relaxed text-on-surface-variant flex-1" id="briefingContent">
+      <div class="flex flex-col items-center justify-center h-32 gap-3 text-on-surface-variant font-label-caps text-label-caps">
+        <span class="inline-block w-5 h-5 border-2 border-[#2A2A2A] border-t-[#FF2D6B] rounded-full spin-refresh"></span>
+        GENERATING BRIEFING...
       </div>
     </div>
 
-    <div class="headlines-section" id="headlinesSection" style="display:none">
-      <div class="headlines-label">Fashion Headlines · Last 7 Days</div>
-      <div id="headlinesList"></div>
+    <!-- Headlines -->
+    <div class="border-t border-[#2A2A2A] pt-6" id="headlinesSection">
+      <h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4">LATEST FASHION INTELLIGENCE</h3>
+      <ul class="flex flex-col gap-3 font-serif text-sm" id="newsList">
+        <li class="font-data-md text-data-md text-on-surface-variant opacity-40">Fetching headlines...</li>
+      </ul>
     </div>
-  </div>
-</div>
+
+    <!-- About -->
+    <div class="border-l-2 border-[#FF2D6B] pl-4 mt-2">
+      <h4 class="font-label-caps text-label-caps text-on-surface-variant mb-2">ABOUT THIS INDICATOR</h4>
+      <p class="font-mono text-[11px] leading-relaxed text-on-surface-variant mb-3">The Hemline Index was first proposed by economist George Taylor in 1926. It theorises that skirt lengths shorten during periods of economic optimism and lengthen during downturns. HemlineIQ tracks this signal in real time using Google Trends search data mapped against Federal Reserve macroeconomic indicators.</p>
+      <p class="font-mono text-[11px] leading-relaxed text-on-surface-variant">A positive Hemline Index means mini skirt searches are outpacing midi and maxi — historically a signal of rising consumer confidence. A negative reading suggests the opposite.</p>
+    </div>
+
+  </section>
+</main>
 
 <!-- FOOTER -->
-<footer class="footer">
+<footer class="border-t border-[#2A2A2A] px-6 md:px-12 py-3 flex justify-between items-center font-label-caps text-label-caps text-on-surface-variant opacity-50">
   <span>HemlineIQ · George Taylor Hemline Index · Est. 2026</span>
-  <span>Data refreshes every hour · Cache: <span id="cacheStatus">—</span></span>
+  <span>Cache: <span id="cacheStatus">—</span></span>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
 <script>
-  const API = 'http://127.0.0.1:8000';
+const API = 'http://127.0.0.1:8000';
 
-  function signal(index) {
-    if (index > 2)  return { label: 'Bullish',  cls: 'bullish' };
-    if (index < -2) return { label: 'Bearish',  cls: 'bearish' };
-    return               { label: 'Neutral',  cls: 'neutral' };
-  }
+function formatDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+  });
+}
 
-  function setText(id, val) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val;
-  }
+function getSignal(index) {
+  if (index > 2)  return { label: 'MINIS RISING ↑',   color: '#FF2D6B', bg: 'rgba(255,45,107,0.1)',  border: '#FF2D6B' };
+  if (index < -2) return { label: 'MAXIS TRENDING ↓', color: '#E8A0B0', bg: 'rgba(232,160,176,0.1)', border: '#E8A0B0' };
+  return               { label: 'MIXED SIGNALS ~',   color: '#F5D0DA', bg: 'rgba(245,208,218,0.08)', border: '#F5D0DA' };
+}
 
-  function formatDate(iso) {
-    if (!iso) return '—';
-    return new Date(iso).toLocaleString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric',
-      hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
-    });
-  }
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
 
-  // Draw a simple SVG bar chart (no external lib needed for this shape)
-  function drawChart(mini, midi, maxi) {
-    const wrap = document.getElementById('chartWrap');
-    const bars = [
-      { label: 'Mini Skirt', value: mini, color: '#C8A951' },
-      { label: 'Midi Skirt', value: midi, color: '#7A7570' },
-      { label: 'Maxi Skirt', value: maxi, color: '#4CAF82' },
-    ];
-    const max = 100;
-    const barW = 80, gap = 60, h = 260, padL = 40, padB = 40, padT = 20;
-    const totalW = padL + bars.length * (barW + gap) - gap + 20;
+function drawBars(mini, midi, maxi) {
+  const container = document.getElementById('barChart');
+  const bars = [
+    { label: 'MINI', value: mini, cls: 'bar-1' },
+    { label: 'MIDI', value: midi, cls: 'bar-2' },
+    { label: 'MAXI', value: maxi, cls: 'bar-3' },
+  ];
+  container.innerHTML = bars.map(b => {
+    const pct = Math.max(4, Math.round((b.value / 100) * 100));
+    return `
+      <div class="flex flex-col items-center gap-2 w-1/4 h-full justify-end">
+        <span class="font-data-md text-data-md text-[#FF2D6B] font-bold">${b.value}</span>
+        <div class="w-full bar-animate ${b.cls} relative"
+             style="height:${pct}%;background:rgba(255,45,107,0.15);border:1px solid #FF2D6B;">
+          <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(255,45,107,0.35), transparent)"></div>
+        </div>
+        <span class="font-label-caps text-label-caps text-on-surface">${b.label}</span>
+      </div>`;
+  }).join('');
+}
 
-    let svgBars = bars.map((b, i) => {
-      const x = padL + i * (barW + gap);
-      const barH = Math.round((b.value / max) * (h - padB - padT));
-      const y = h - padB - barH;
-      return `
-        <rect x="${x}" y="${y}" width="${barW}" height="${barH}"
-              fill="${b.color}" opacity="0.85" rx="2"/>
-        <text x="${x + barW / 2}" y="${y - 8}" text-anchor="middle"
-              fill="${b.color}" font-family="DM Mono, monospace" font-size="13" font-weight="500">${b.value}</text>
-        <text x="${x + barW / 2}" y="${h - padB + 18}" text-anchor="middle"
-              fill="#7A7570" font-family="DM Mono, monospace" font-size="10">${b.label}</text>
-      `;
-    }).join('');
-
-    // y-axis lines
-    let gridLines = '';
-    for (let v = 0; v <= 100; v += 25) {
-      const y = h - padB - Math.round((v / max) * (h - padB - padT));
-      gridLines += `<line x1="${padL - 5}" y1="${y}" x2="${totalW}" y2="${y}" stroke="#2A2A2A" stroke-width="1"/>
-        <text x="${padL - 8}" y="${y + 4}" text-anchor="end" fill="#7A7570" font-family="DM Mono,monospace" font-size="9">${v}</text>`;
+function renderBriefing(text) {
+  const paras = text.split(/\n\n+/).filter(p => p.trim());
+  return paras.map((p, i) => {
+    const clean = p.trim();
+    if (i === 0) {
+      return `<p class="fade-in first-letter:text-5xl first-letter:font-bold first-letter:text-on-surface first-letter:float-left first-letter:mr-2 first-letter:mt-[-4px]">${clean}</p>`;
     }
+    return `<p class="fade-in" style="animation-delay:${i * 0.15}s;opacity:0">${clean}</p>`;
+  }).join('');
+}
 
-    wrap.innerHTML = `
-      <svg viewBox="0 0 ${totalW} ${h}" xmlns="http://www.w3.org/2000/svg"
-           style="width:100%;height:100%;max-height:300px">
-        ${gridLines}
-        ${svgBars}
-      </svg>`;
+async function loadData() {
+  // Show loading states
+  const overlay = document.getElementById('loadingOverlay');
+  const refreshIcon = document.getElementById('refreshIcon');
+  overlay.classList.remove('hidden');
+  overlay.classList.add('flex');
+  refreshIcon.classList.add('spin-refresh');
+
+  try {
+    const res = await fetch(`${API}/briefing`);
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    const d = await res.json();
+
+    // Index + signal badge
+    const idx = d.hemline_index ?? 0;
+    const sig = getSignal(idx);
+    setText('indexValue', (idx > 0 ? '+' : '') + idx);
+    const badge = document.getElementById('signalBadge');
+    badge.textContent = sig.label;
+    badge.style.color = sig.color;
+    badge.style.borderColor = sig.border;
+    badge.style.background = sig.bg;
+
+    // Header stats
+    setText('headerSentiment',    d.sentiment);
+    setText('headerUnemployment', d.unemployment + '%');
+    setText('headerInflation',    d.inflation);
+    setText('generatedAt', 'AS OF ' + formatDate(d.generated_at));
+    setText('cacheStatus', d.source === 'cache' ? 'HIT' : 'MISS — refreshed');
+
+    // Macro row
+    setText('macroSentiment',    d.sentiment);
+    setText('macroUnemployment', d.unemployment + '%');
+    setText('macroInflation',    d.inflation);
+
+    // Chart
+    drawBars(d.mini_score ?? 0, d.midi_score ?? 0, d.maxi_score ?? 0);
+
+    // Briefing
+    document.getElementById('briefingContent').innerHTML = renderBriefing(d.briefing);
+
+  } catch (err) {
+    document.getElementById('briefingContent').innerHTML = `
+      <div class="border border-[#FF2D6B]/30 bg-[#FF2D6B]/5 p-4 font-mono text-[11px] text-[#FF2D6B]">
+        Could not reach the HemlineIQ API.<br>
+        Make sure <code>uvicorn main:app --reload</code> is running on port 8000.<br><br>
+        ${err.message}
+      </div>`;
+    document.getElementById('barChart').innerHTML = '';
+  } finally {
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+    refreshIcon.classList.remove('spin-refresh');
   }
 
-  function renderBriefing(text) {
-    const paras = text.split('\n\n').filter(p => p.trim());
-    return paras.map(p => `<p>${p.trim()}</p>`).join('');
-  }
-
-  async function loadData() {
-    // Reset loading states
-    document.getElementById('chartWrap').innerHTML =
-      `<div class="loading-state"><div class="spinner"></div><div class="loading-text">Pulling trend data...</div></div>`;
-    document.getElementById('briefingContent').innerHTML =
-      `<div class="loading-state"><div class="spinner"></div><div class="loading-text">Generating briefing...</div></div>`;
-
-    try {
-      const res  = await fetch(`${API}/briefing`);
-      if (!res.ok) throw new Error(`API returned ${res.status}`);
-      const data = await res.json();
-
-      // Masthead
-      const idx = data.hemline_index ?? 0;
-      const sig = signal(idx);
-      setText('indexValue', (idx > 0 ? '+' : '') + idx);
-      const badge = document.getElementById('signalBadge');
-      badge.textContent = sig.label;
-      badge.className = `signal-badge ${sig.cls}`;
-
-      setText('headerSentiment',    data.sentiment    + '/100');
-      setText('headerUnemployment', data.unemployment + '%');
-      setText('headerInflation',    data.inflation);
-      setText('generatedAt', formatDate(data.generated_at));
-      setText('cacheStatus', data.source === 'cache' ? 'HIT' : 'MISS — refreshed');
-
-      // Stat cards
-      setText('miniScore', data.mini_score ?? '—');
-      setText('midiScore', data.midi_score ?? '—');
-      setText('maxiScore', data.maxi_score ?? '—');
-
-      // Chart
-      drawChart(data.mini_score ?? 0, data.midi_score ?? 0, data.maxi_score ?? 0);
-
-      // Briefing
-      document.getElementById('briefingContent').innerHTML =
-        `<div class="briefing-text">${renderBriefing(data.briefing)}</div>`;
-
-    } catch (err) {
-      const errMsg = `<div class="error-msg">Could not reach the HemlineIQ API. Make sure uvicorn is running on port 8000.<br><br>${err.message}</div>`;
-      document.getElementById('chartWrap').innerHTML = errMsg;
-      document.getElementById('briefingContent').innerHTML = errMsg;
+  // Headlines — non-blocking
+  try {
+    const nRes = await fetch(`${API}/news`);
+    const nData = await nRes.json();
+    const headlines = nData.top_headlines ?? [];
+    const list = document.getElementById('newsList');
+    if (headlines.length > 0) {
+      list.innerHTML = headlines.map(h => `
+        <li class="flex items-start gap-2 hover:text-[#FF2D6B] transition-colors cursor-pointer group font-serif text-sm text-on-surface-variant">
+          <span class="text-[#FF2D6B] font-mono mt-1 group-hover:translate-x-1 transition-transform flex-shrink-0">—</span>
+          <span>${h}</span>
+        </li>`).join('');
+    } else {
+      list.innerHTML = `<li class="font-data-md text-data-md text-on-surface-variant opacity-40">No headlines available right now.</li>`;
     }
-
-    // Load headlines separately (non-blocking)
-    try {
-      const nRes  = await fetch(`${API}/news`);
-      const nData = await nRes.json();
-      const headlines = nData.top_headlines ?? [];
-      if (headlines.length > 0) {
-        document.getElementById('headlinesSection').style.display = 'block';
-        document.getElementById('headlinesList').innerHTML =
-          headlines.map(h => `<div class="headline-item">${h}</div>`).join('');
-      }
-    } catch (_) { /* news is non-critical */ }
+  } catch (_) {
+    document.getElementById('newsList').innerHTML =
+      `<li class="font-data-md text-data-md text-on-surface-variant opacity-40">Headlines unavailable.</li>`;
   }
+}
 
-  loadData();
+document.getElementById('refreshBtn').addEventListener('click', loadData);
+loadData();
 </script>
-</body>
-</html>
+</body></html>
