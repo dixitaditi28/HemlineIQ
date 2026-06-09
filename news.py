@@ -43,7 +43,7 @@ def fetch_fashion_news(days_back: int = 7, page_size: int = 30) -> list[dict]:
         "apiKey": NEWS_API_KEY,
     }
 
-    response = requests.get(BASE_URL, params=params, timeout=10)
+    response = requests.get(BASE_URL, params=params, timeout=30)
     response.raise_for_status()
 
     articles = response.json().get("articles", [])
