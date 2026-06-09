@@ -1,10 +1,11 @@
 from groq import Groq
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 from news import get_news_data
 import os
 
 load_dotenv()
+
 
 def build_prompt(hemline_index, mini_score, midi_score, sentiment, unemployment, inflation, news):
     news_signal = news['sentiment']['dominant_signal']
@@ -62,9 +63,11 @@ def _try_groq(prompt):
 
 def _try_gemini(prompt):
     """Fallback LLM: Gemini (free, generous limits)."""
-    genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
-    model = genai.GenerativeModel("gemini-1.5-flash")
-    response = model.generate_content(prompt)
+    client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=prompt
+    )
     return response.text
 
 
@@ -80,6 +83,7 @@ def generate_briefing(hemline_index, mini_score, midi_score, sentiment, unemploy
         print(f"[insight.py] Groq failed ({e}) — falling back to Gemini...")
 
     try:
+        print("[insight.py] Using Gemini...")
         return _try_gemini(prompt)
     except Exception as e:
         raise RuntimeError(f"Both LLMs failed. Last error: {e}")
