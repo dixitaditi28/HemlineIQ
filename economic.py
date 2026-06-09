@@ -21,6 +21,7 @@ def get_economic_data():
     print(f"  (100 = neutral, above = optimistic, below = pessimistic)")
     print(f"\nUnemployment Rate (latest): {unemployment.iloc[-1]:.1f}%")
     print(f"\nCPI Inflation Index (latest): {inflation.iloc[-1]:.1f}")
+
     
     return {
         "sentiment": sentiment,
