@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HemlineIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:   #0A0A0A;
+      --surface: #141414;
+      --card:    #1C1C1C;
+      --border:  #2A2A2A;
+      --parchment: #F5F0E8;
+      --muted:   #7A7570;
+      --gold:    #C8A951;
+      --gold-dim:#8C7435;
+      --red:     #E63946;
+      --green:   #4CAF82;
+    }
+
+    body {
+      background: var(--black);
+      color: var(--parchment);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── MASTHEAD ── */
+    .masthead {
+      border-bottom: 1px solid var(--border);
+      padding: 0 2.5rem;
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+      height: 72px;
+    }
+
+    .masthead-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .wordmark {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      color: var(--parchment);
+      line-height: 1;
+    }
+
+    .wordmark span {
+      color: var(--gold);
+    }
+
+    .tagline {
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .masthead-center {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .index-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 2rem;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      height: 100%;
+      justify-content: center;
+    }
+
+    .index-label {
+      font-size: 0.55rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .index-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+      animation: goldPulse 2s ease-out forwards;
+    }
+
+    @keyframes goldPulse {
+      0%   { color: var(--parchment); text-shadow: none; }
+      40%  { color: var(--gold); text-shadow: 0 0 24px var(--gold), 0 0 48px var(--gold-dim); }
+      100% { color: var(--parchment); text-shadow: none; }
+    }
+
+    .signal-badge {
+      font-size: 0.5rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 2px;
+      margin-top: 3px;
+      font-weight: 500;
+    }
+    .signal-badge.bullish  { background: rgba(76,175,130,0.15); color: var(--green); border: 1px solid rgba(76,175,130,0.3); }
+    .signal-badge.bearish  { background: rgba(230,57,70,0.15);  color: var(--red);   border: 1px solid rgba(230,57,70,0.3); }
+    .signal-badge.neutral  { background: rgba(200,169,81,0.15); color: var(--gold);  border: 1px solid rgba(200,169,81,0.3); }
+
+    .masthead-right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .stat-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .stat-pill .s-label {
+      font-size: 0.5rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .stat-pill .s-value {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--parchment);
+    }
+
+    .refresh-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .refresh-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    /* ── DATE STRIP ── */
+    .date-strip {
+      padding: 6px 2.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      font-size: 0.55rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .date-strip .dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: blink 2s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.2; }
+    }
+
+    /* ── MAIN GRID ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      min-height: calc(100vh - 120px);
+    }
+
+    /* ── CHART PANEL ── */
+    .chart-panel {
+      border-right: 1px solid var(--border);
+      padding: 2rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .panel-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--parchment);
+      line-height: 1.2;
+    }
+
+    .panel-subtitle {
+      font-size: 0.55rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.55rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .legend-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+
+    .chart-wrap {
+      flex: 1;
+      min-height: 320px;
+    }
+
+    /* Recharts overrides */
+    .recharts-cartesian-grid-horizontal line,
+    .recharts-cartesian-grid-vertical line {
+      stroke: var(--border) !important;
+    }
+
+    .recharts-text { fill: var(--muted) !important; font-family: 'DM Mono', monospace !important; font-size: 10px !important; }
+    .recharts-tooltip-wrapper { font-family: 'DM Mono', monospace !important; }
+
+    /* ── STATS ROW (below chart) ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .stat-card {
+      background: var(--card);
+      padding: 1rem;
+    }
+
+    .stat-card .sc-label {
+      font-size: 0.5rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-card .sc-value {
+      font-size: 1.3rem;
+      font-weight: 500;
+      color: var(--parchment);
+      line-height: 1;
+    }
+
+    .stat-card .sc-sub {
+      font-size: 0.5rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* ── BRIEFING PANEL ── */
+    .briefing-panel {
+      padding: 2rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .briefing-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.95rem;
+      line-height: 1.85;
+      color: var(--parchment);
+      flex: 1;
+    }
+
+    .briefing-text p {
+      margin-bottom: 1.2em;
+    }
+
+    .briefing-text p:last-child { margin-bottom: 0; }
+
+    .briefing-divider {
+      width: 40px;
+      height: 1px;
+      background: var(--gold);
+      margin: 0.5rem 0;
+    }
+
+    /* news headlines */
+    .headlines-section { margin-top: 0.5rem; }
+
+    .headlines-label {
+      font-size: 0.5rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .headline-item {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.6rem 0;
+      border-top: 1px solid var(--border);
+      font-size: 0.65rem;
+      line-height: 1.5;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+
+    .headline-item:hover { color: var(--parchment); }
+
+    .headline-item::before {
+      content: '—';
+      color: var(--gold);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* loading / error states */
+    .loading-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 1rem;
+      color: var(--muted);
+    }
+
+    .spinner {
+      width: 24px; height: 24px;
+      border: 1px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .error-msg {
+      font-size: 0.65rem;
+      color: var(--red);
+      padding: 1rem;
+      border: 1px solid rgba(230,57,70,0.2);
+      background: rgba(230,57,70,0.05);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 1rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.5rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .chart-panel { border-right: none; border-bottom: 1px solid var(--border); }
+      .masthead-center, .masthead-right { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-left">
+    <div class="wordmark">Hemline<span>IQ</span></div>
+    <div class="tagline">Fashion as Economic Signal</div>
+  </div>
+  <div class="masthead-center">
+    <div class="index-display">
+      <div class="index-label">Hemline Index</div>
+      <div class="index-value" id="indexValue">—</div>
+      <div class="signal-badge neutral" id="signalBadge">Loading</div>
+    </div>
+  </div>
+  <div class="masthead-right">
+    <div class="stat-pill">
+      <span class="s-label">Sentiment</span>
+      <span class="s-value" id="headerSentiment">—</span>
+    </div>
+    <div class="stat-pill">
+      <span class="s-label">Unemployment</span>
+      <span class="s-value" id="headerUnemployment">—</span>
+    </div>
+    <div class="stat-pill">
+      <span class="s-label">CPI</span>
+      <span class="s-value" id="headerInflation">—</span>
+    </div>
+    <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
+  </div>
+</header>
+
+<!-- DATE STRIP -->
+<div class="date-strip">
+  <div class="dot"></div>
+  <span>Live Data</span>
+  <span>·</span>
+  <span id="generatedAt">Fetching...</span>
+  <span>·</span>
+  <span>Source: Google Trends · Federal Reserve · NewsAPI</span>
+  <span>·</span>
+  <span>Model: Groq llama-3.3-70b / Gemini 2.0 Flash</span>
+</div>
+
+<!-- MAIN GRID -->
+<div class="main-grid">
+
+  <!-- LEFT: CHART -->
+  <div class="chart-panel">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Hemline Index vs Consumer Sentiment</div>
+        <div class="panel-subtitle">Google Trends search interest · 5-year window · United States</div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#C8A951"></div>Mini Skirt</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#7A7570"></div>Midi Skirt</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#4CAF82"></div>Maxi Skirt</div>
+      </div>
+    </div>
+
+    <div class="chart-wrap" id="chartWrap">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <div class="loading-text">Pulling trend data...</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="sc-label">Mini Skirt</div>
+        <div class="sc-value" id="miniScore">—</div>
+        <div class="sc-sub">Search interest / 100</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">Midi Skirt</div>
+        <div class="sc-value" id="midiScore">—</div>
+        <div class="sc-sub">Search interest / 100</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">Maxi Skirt</div>
+        <div class="sc-value" id="maxiScore">—</div>
+        <div class="sc-sub">Search interest / 100</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: BRIEFING -->
+  <div class="briefing-panel">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">AI Analyst Briefing</div>
+        <div class="panel-subtitle">Bloomberg-style · Updated hourly · Hemline Index theory, G. Taylor 1926</div>
+      </div>
+    </div>
+
+    <div class="briefing-divider"></div>
+
+    <div id="briefingContent">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <div class="loading-text">Generating briefing...</div>
+      </div>
+    </div>
+
+    <div class="headlines-section" id="headlinesSection" style="display:none">
+      <div class="headlines-label">Fashion Headlines · Last 7 Days</div>
+      <div id="headlinesList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span>HemlineIQ · George Taylor Hemline Index · Est. 2026</span>
+  <span>Data refreshes every hour · Cache: <span id="cacheStatus">—</span></span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
+<script>
+  const API = 'http://127.0.0.1:8000';
+
+  function signal(index) {
+    if (index > 2)  return { label: 'Bullish',  cls: 'bullish' };
+    if (index < -2) return { label: 'Bearish',  cls: 'bearish' };
+    return               { label: 'Neutral',  cls: 'neutral' };
+  }
+
+  function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+    });
+  }
+
+  // Draw a simple SVG bar chart (no external lib needed for this shape)
+  function drawChart(mini, midi, maxi) {
+    const wrap = document.getElementById('chartWrap');
+    const bars = [
+      { label: 'Mini Skirt', value: mini, color: '#C8A951' },
+      { label: 'Midi Skirt', value: midi, color: '#7A7570' },
+      { label: 'Maxi Skirt', value: maxi, color: '#4CAF82' },
+    ];
+    const max = 100;
+    const barW = 80, gap = 60, h = 260, padL = 40, padB = 40, padT = 20;
+    const totalW = padL + bars.length * (barW + gap) - gap + 20;
+
+    let svgBars = bars.map((b, i) => {
+      const x = padL + i * (barW + gap);
+      const barH = Math.round((b.value / max) * (h - padB - padT));
+      const y = h - padB - barH;
+      return `
+        <rect x="${x}" y="${y}" width="${barW}" height="${barH}"
+              fill="${b.color}" opacity="0.85" rx="2"/>
+        <text x="${x + barW / 2}" y="${y - 8}" text-anchor="middle"
+              fill="${b.color}" font-family="DM Mono, monospace" font-size="13" font-weight="500">${b.value}</text>
+        <text x="${x + barW / 2}" y="${h - padB + 18}" text-anchor="middle"
+              fill="#7A7570" font-family="DM Mono, monospace" font-size="10">${b.label}</text>
+      `;
+    }).join('');
+
+    // y-axis lines
+    let gridLines = '';
+    for (let v = 0; v <= 100; v += 25) {
+      const y = h - padB - Math.round((v / max) * (h - padB - padT));
+      gridLines += `<line x1="${padL - 5}" y1="${y}" x2="${totalW}" y2="${y}" stroke="#2A2A2A" stroke-width="1"/>
+        <text x="${padL - 8}" y="${y + 4}" text-anchor="end" fill="#7A7570" font-family="DM Mono,monospace" font-size="9">${v}</text>`;
+    }
+
+    wrap.innerHTML = `
+      <svg viewBox="0 0 ${totalW} ${h}" xmlns="http://www.w3.org/2000/svg"
+           style="width:100%;height:100%;max-height:300px">
+        ${gridLines}
+        ${svgBars}
+      </svg>`;
+  }
+
+  function renderBriefing(text) {
+    const paras = text.split('\n\n').filter(p => p.trim());
+    return paras.map(p => `<p>${p.trim()}</p>`).join('');
+  }
+
+  async function loadData() {
+    // Reset loading states
+    document.getElementById('chartWrap').innerHTML =
+      `<div class="loading-state"><div class="spinner"></div><div class="loading-text">Pulling trend data...</div></div>`;
+    document.getElementById('briefingContent').innerHTML =
+      `<div class="loading-state"><div class="spinner"></div><div class="loading-text">Generating briefing...</div></div>`;
+
+    try {
+      const res  = await fetch(`${API}/briefing`);
+      if (!res.ok) throw new Error(`API returned ${res.status}`);
+      const data = await res.json();
+
+      // Masthead
+      const idx = data.hemline_index ?? 0;
+      const sig = signal(idx);
+      setText('indexValue', (idx > 0 ? '+' : '') + idx);
+      const badge = document.getElementById('signalBadge');
+      badge.textContent = sig.label;
+      badge.className = `signal-badge ${sig.cls}`;
+
+      setText('headerSentiment',    data.sentiment    + '/100');
+      setText('headerUnemployment', data.unemployment + '%');
+      setText('headerInflation',    data.inflation);
+      setText('generatedAt', formatDate(data.generated_at));
+      setText('cacheStatus', data.source === 'cache' ? 'HIT' : 'MISS — refreshed');
+
+      // Stat cards
+      setText('miniScore', data.mini_score ?? '—');
+      setText('midiScore', data.midi_score ?? '—');
+      setText('maxiScore', data.maxi_score ?? '—');
+
+      // Chart
+      drawChart(data.mini_score ?? 0, data.midi_score ?? 0, data.maxi_score ?? 0);
+
+      // Briefing
+      document.getElementById('briefingContent').innerHTML =
+        `<div class="briefing-text">${renderBriefing(data.briefing)}</div>`;
+
+    } catch (err) {
+      const errMsg = `<div class="error-msg">Could not reach the HemlineIQ API. Make sure uvicorn is running on port 8000.<br><br>${err.message}</div>`;
+      document.getElementById('chartWrap').innerHTML = errMsg;
+      document.getElementById('briefingContent').innerHTML = errMsg;
+    }
+
+    // Load headlines separately (non-blocking)
+    try {
+      const nRes  = await fetch(`${API}/news`);
+      const nData = await nRes.json();
+      const headlines = nData.top_headlines ?? [];
+      if (headlines.length > 0) {
+        document.getElementById('headlinesSection').style.display = 'block';
+        document.getElementById('headlinesList').innerHTML =
+          headlines.map(h => `<div class="headline-item">${h}</div>`).join('');
+      }
+    } catch (_) { /* news is non-critical */ }
+  }
+
+  loadData();
+</script>
+</body>
+</html>
